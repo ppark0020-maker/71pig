@@ -1,0 +1,1449 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>71돼지띠 테니스모임 관리 시스템 (온라인)</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root{
+      --bg0:#0b1020; --bg1:#0f1630; --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.09); --line:rgba(255,255,255,.12);
+      --text:#eaf0ff; --muted:rgba(234,240,255,.72);
+      --accent:#7c5cff; --accent2:#34d399; --warn:#fbbf24; --danger:#fb7185;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Apple SD Gothic Neo, "Noto Sans KR", "Malgun Gothic", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(124,92,255,.22), transparent 60%),
+        radial-gradient(900px 600px at 80% 0%, rgba(52,211,153,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100vh;
+    }
+    .wrap{max-width:1220px; margin:0 auto; padding:22px 16px 90px}
+    .top{display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:14px;}
+    .brand{display:flex; gap:12px; align-items:center;}
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,92,255,.95), rgba(52,211,153,.85));
+      box-shadow: 0 14px 40px rgba(124,92,255,.22);
+      display:grid; place-items:center;
+    }
+    .logo i{font-size:20px}
+    h1{font-size:18px; margin:0}
+    .sub{color:var(--muted); font-size:12px; margin-top:2px}
+    .pillbar{display:flex; gap:8px; flex-wrap:wrap}
+    .pill{
+      padding:9px 12px; border:1px solid var(--line);
+      border-radius:999px; background:rgba(255,255,255,.05);
+      display:flex; gap:8px; align-items:center; cursor:pointer; user-select:none;
+      transition:.18s ease;
+    }
+    .pill:hover{transform:translateY(-1px); background:rgba(255,255,255,.08)}
+    .pill.active{border-color: rgba(124,92,255,.65); background:rgba(124,92,255,.16)}
+    .grid{display:grid; grid-template-columns: 360px 1fr; gap:14px;}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 12px;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    .card .hd .title{display:flex; align-items:center; gap:10px; font-weight:700}
+    .card .bd{padding:14px}
+    .btn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      display:inline-flex; align-items:center; gap:8px;
+      transition:.18s ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.10)}
+    .btn.primary{border-color:rgba(124,92,255,.65); background:rgba(124,92,255,.18)}
+    .btn.good{border-color:rgba(52,211,153,.55); background:rgba(52,211,153,.16)}
+    .btn.warn{border-color:rgba(251,191,36,.55); background:rgba(251,191,36,.14)}
+    .btn.danger{border-color:rgba(251,113,133,.55); background:rgba(251,113,133,.14)}
+    .btn.ghost{background:transparent}
+    .btn:disabled{opacity:.5; cursor:not-allowed; transform:none}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .col{display:flex; flex-direction:column; gap:10px}
+    .field{display:flex; flex-direction:column; gap:6px; min-width: 180px;}
+    .field label{font-size:12px; color:var(--muted)}
+    input, select, textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:70px; resize:vertical}
+    .small{font-size:12px; color:var(--muted)}
+    .list{display:flex; flex-direction:column; gap:8px;}
+    .item{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      border-radius:14px;
+      padding:10px 10px;
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+    }
+    .item .left{display:flex; flex-direction:column; gap:2px}
+    .item .name{font-weight:700}
+    .tag{
+      font-size:12px; color:var(--muted);
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.18);
+      display:inline-flex; gap:6px; align-items:center;
+      white-space:nowrap;
+    }
+    .tag.good{border-color:rgba(52,211,153,.55); background:rgba(52,211,153,.13)}
+    .tag.warn{border-color:rgba(251,191,36,.55); background:rgba(251,191,36,.11)}
+    .tag.danger{border-color:rgba(251,113,133,.55); background:rgba(251,113,133,.11)}
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden}
+    th, td{padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:middle}
+    th{font-size:12px; color:var(--muted); text-align:left; background:rgba(255,255,255,.04); position:sticky; top:0}
+    .tablewrap{border:1px solid var(--line); border-radius:14px; overflow:auto; max-height:520px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .hint{
+      border:1px dashed rgba(124,92,255,.45);
+      background:rgba(124,92,255,.10);
+      padding:10px 12px; border-radius:14px;
+      color:rgba(234,240,255,.86);
+      font-size:12px;
+    }
+    .toast{
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:18px;
+      background:rgba(0,0,0,.72);
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      opacity:0; pointer-events:none;
+      transition:.18s ease;
+      max-width: min(820px, calc(100vw - 30px));
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .toast.show{opacity:1; pointer-events:auto}
+    .sep{height:1px; background:var(--line); margin:10px 0}
+    .rightActions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .mutedBox{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .kdkGrid{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    @media (max-width: 780px){ .kdkGrid{grid-template-columns:1fr} }
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 10px; border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      font-size:12px; color:var(--muted);
+    }
+    .scoreBtn{
+      padding:7px 10px; border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      cursor:pointer;
+    }
+    .scoreBtn.onA{border-color:rgba(124,92,255,.65); background:rgba(124,92,255,.18)}
+    .scoreBtn.onB{border-color:rgba(52,211,153,.60); background:rgba(52,211,153,.16)}
+    .scoreRow{flex-wrap:nowrap !important; white-space:nowrap}
+    .scoreRow input{width:72px; max-width:72px}
+    @media print{
+      .top,.pillbar,.card .hd .rightActions,.noPrint{display:none !important}
+      .card{box-shadow:none;}
+      th{position:static}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo"><i class="fa-solid fa-table-tennis-paddle-ball"></i></div>
+        <div>
+          <h1>71돼지띠 테니스모임 관리 시스템 <span class="badge" id="netBadge"><i class="fa-solid fa-circle-notch fa-spin"></i> 연결 중</span></h1>
+          <div class="sub">온라인 동기화 · 명단 · 출결(출석/결석) · KDK 대진표(인당 3/4게임 동일) · 결과(A/B승) · 승률순 성적표</div>
+        </div>
+      </div>
+      <div class="pillbar" id="tabs"></div>
+    </div>
+
+    <div class="grid">
+      <div class="card" id="leftCard">
+        <div class="hd">
+          <div class="title"><i class="fa-solid fa-layer-group"></i> <span id="leftTitle">온라인</span></div>
+          <div class="rightActions">
+            <button class="btn ghost" id="btnHelp"><i class="fa-regular fa-circle-question"></i> 도움말</button>
+          </div>
+        </div>
+        <div class="bd" id="leftBody"></div>
+      </div>
+
+      <div class="card" id="rightCard">
+        <div class="hd">
+          <div class="title"><i class="fa-solid fa-gauge-high"></i> <span id="rightTitle">대시보드</span></div>
+          <div class="rightActions noPrint" id="rightActions"></div>
+        </div>
+        <div class="bd" id="rightBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <i class="fa-solid fa-bolt"></i>
+    <div>
+      <div id="toastMsg" style="font-weight:700"></div>
+      <div id="toastSub" class="small"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =========================
+  // 1) ✅ 여기에 Firebase config 넣기
+  // =========================
+  const FIREBASE_CONFIG = {
+    apiKey: "여기에_넣기",
+    authDomain: "여기에_넣기",
+    projectId: "여기에_넣기",
+    // 아래는 보통 자동으로 포함되지만 없어도 동작하는 경우가 많습니다.
+    // storageBucket: "",
+    // messagingSenderId: "",
+    // appId: ""
+  };
+
+  // =========================
+  // 2) 온라인 저장소 경로
+  // =========================
+  const COLLECTION = "groups"; // /groups/{groupCode}
+
+  // =========================
+  // 3) 로컬(임시)키
+  // =========================
+  const LS_LOCAL_CACHE = "PIG71_TENNIS_ONLINE_CACHE_V1";
+  const LS_GROUP_CODE = "PIG71_TENNIS_GROUP_CODE_V1";
+
+  const APP = {
+    state: null,
+    tab: "sessions",
+    selectedSessionId: null,
+    groupCode: (localStorage.getItem(LS_GROUP_CODE) || "").trim(),
+    isOnlineReady: false,
+    isSyncing: false,
+    lastRemoteUpdatedAt: 0,
+    unsub: null,
+    fb: { app:null, auth:null, db:null },
+    ui: {
+      tabs: document.getElementById("tabs"),
+      leftTitle: document.getElementById("leftTitle"),
+      rightTitle: document.getElementById("rightTitle"),
+      leftBody: document.getElementById("leftBody"),
+      rightBody: document.getElementById("rightBody"),
+      rightActions: document.getElementById("rightActions"),
+      toast: document.getElementById("toast"),
+      toastMsg: document.getElementById("toastMsg"),
+      toastSub: document.getElementById("toastSub"),
+      btnHelp: document.getElementById("btnHelp"),
+      netBadge: document.getElementById("netBadge"),
+    }
+  };
+
+  // ---------- util ----------
+  const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36);
+  const iso = (d) => {
+    const z = new Date(d);
+    const y = z.getFullYear();
+    const m = String(z.getMonth()+1).padStart(2,"0");
+    const dd = String(z.getDate()).padStart(2,"0");
+    return `${y}-${m}-${dd}`;
+  };
+  const todayISO = () => iso(new Date());
+  const byNameKo = (a,b) => (a.name || "").localeCompare((b.name||""), "ko");
+  const kDate = (isoStr) => {
+    if(!isoStr) return "-";
+    const [y,m,d] = isoStr.split("-");
+    return `${y}.${m}.${d}`;
+  };
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+  const toast = (msg, sub="") => {
+    APP.ui.toastMsg.textContent = msg;
+    APP.ui.toastSub.textContent = sub;
+    APP.ui.toast.classList.add("show");
+    clearTimeout(APP._toastT);
+    APP._toastT = setTimeout(() => APP.ui.toast.classList.remove("show"), 2200);
+  };
+
+  // ✅ 매월 마지막 금요일
+  function lastFridayOfMonth(year, monthIndex){
+    const d = new Date(year, monthIndex+1, 0);
+    while(d.getDay() !== 5) d.setDate(d.getDate()-1);
+    return d;
+  }
+  function nextMonthlyLastFridayISO(){
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    let lf = lastFridayOfMonth(y, m);
+    const today0 = new Date(y, m, now.getDate());
+    const lf0 = new Date(lf.getFullYear(), lf.getMonth(), lf.getDate());
+    if(lf0 < today0){
+      const nm = new Date(y, m+1, 1);
+      lf = lastFridayOfMonth(nm.getFullYear(), nm.getMonth());
+    }
+    return iso(lf);
+  }
+
+  // ---------- 기본 멤버 ----------
+  const defaultMembers = [
+    "강병수","강순중","구영진","김경준","문덕호","박준열",
+    "박흥수","백정렬","손범규","여찬윤","임민택","이창민"
+  ].map(n => ({ id: uid(), name: n })).sort(byNameKo);
+
+  const defaultState = () => ({
+    appName: "71돼지띠 테니스모임",
+    createdAt: new Date().toISOString(),
+    members: defaultMembers,
+    sessions: [
+      {
+        id: uid(),
+        date: nextMonthlyLastFridayISO(),
+        title: "정기모임",
+        note: "",
+        attendance: {}, // present/absent
+        kdk: { gamesPerPerson: 3, courts: 1, matches: [], generatedAt: null },
+        results: { byMatch: {} }
+      }
+    ],
+    updatedAt: Date.now(),     // ✅ 동기화용
+    updatedBy: "local"
+  });
+
+  const loadLocalCache = () => {
+    try{
+      const raw = localStorage.getItem(LS_LOCAL_CACHE);
+      if(!raw) return null;
+      const s = JSON.parse(raw);
+      if(!s || !s.members || !s.sessions) return null;
+      return s;
+    }catch{ return null; }
+  };
+  const saveLocalCache = () => {
+    try{
+      localStorage.setItem(LS_LOCAL_CACHE, JSON.stringify(APP.state));
+    }catch{}
+  };
+
+  const ensureState = () => {
+    APP.state = loadLocalCache() || defaultState();
+    APP.state.members = (APP.state.members || []).sort(byNameKo);
+    if(!APP.selectedSessionId){
+      APP.selectedSessionId = APP.state.sessions?.[0]?.id || null;
+    }
+    // 지각(late) 흡수
+    APP.state.sessions.forEach(ss => {
+      ss.attendance = ss.attendance || {};
+      Object.keys(ss.attendance).forEach(k => {
+        if(ss.attendance[k] === "late") ss.attendance[k] = "present";
+      });
+      ss.kdk = ss.kdk || { gamesPerPerson: 3, courts: 1, matches: [], generatedAt: null };
+      ss.results = ss.results || { byMatch: {} };
+      ss.kdk.matches = ss.kdk.matches || [];
+      ss.results.byMatch = ss.results.byMatch || {};
+    });
+    APP.state.updatedAt = APP.state.updatedAt || Date.now();
+    APP.state.updatedBy = APP.state.updatedBy || "local";
+    saveLocalCache();
+  };
+
+  // ---------- Firebase init ----------
+  function setBadge(text, kind="spin"){
+    const b = APP.ui.netBadge;
+    if(kind==="ok"){
+      b.innerHTML = `<i class="fa-solid fa-wifi"></i> ${text}`;
+      b.style.borderColor = "rgba(52,211,153,.55)";
+      b.style.background = "rgba(52,211,153,.13)";
+    }else if(kind==="warn"){
+      b.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${text}`;
+      b.style.borderColor = "rgba(251,191,36,.55)";
+      b.style.background = "rgba(251,191,36,.11)";
+    }else{
+      b.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> ${text}`;
+      b.style.borderColor = "rgba(124,92,255,.55)";
+      b.style.background = "rgba(124,92,255,.12)";
+    }
+  }
+
+  async function initFirebase(){
+    try{
+      if(!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.includes("여기에")){
+        setBadge("Firebase 설정 필요", "warn");
+        return;
+      }
+      APP.fb.app = firebase.initializeApp(FIREBASE_CONFIG);
+      APP.fb.auth = firebase.auth();
+      APP.fb.db = firebase.firestore();
+      await APP.fb.auth.signInAnonymously();
+      APP.isOnlineReady = true;
+      setBadge(APP.groupCode ? "온라인 대기" : "그룹코드 필요", APP.groupCode ? "ok" : "warn");
+      if(APP.groupCode) connectGroup(APP.groupCode);
+    }catch(err){
+      console.error(err);
+      setBadge("온라인 연결 실패", "warn");
+    }
+  }
+
+  function groupRef(code){
+    return APP.fb.db.collection(COLLECTION).doc(code);
+  }
+
+  // ✅ last-write-wins (updatedAt 비교)
+  function applyRemote(remote){
+    if(!remote) return;
+    const rUpdatedAt = remote.updatedAt || 0;
+    if(rUpdatedAt <= APP.lastRemoteUpdatedAt) return;
+    APP.lastRemoteUpdatedAt = rUpdatedAt;
+
+    APP.state = remote;
+    APP.state.members = (APP.state.members || []).sort(byNameKo);
+    APP.selectedSessionId = APP.state.sessions?.[0]?.id || APP.selectedSessionId;
+    saveLocalCache();
+    toast("온라인 동기화 완료", "다른 사람 변경사항 반영됨");
+    render();
+  }
+
+  let saveTimer = null;
+  function schedulePush(reason="변경"){
+    if(!APP.isOnlineReady || !APP.groupCode) {
+      // 온라인이 아니면 로컬만 저장
+      APP.state.updatedAt = Date.now();
+      APP.state.updatedBy = "local";
+      saveLocalCache();
+      return;
+    }
+    APP.state.updatedAt = Date.now();
+    APP.state.updatedBy = APP.fb.auth.currentUser?.uid || "anon";
+    saveLocalCache();
+
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      try{
+        APP.isSyncing = true;
+        setBadge("동기화 중", "spin");
+        await groupRef(APP.groupCode).set(APP.state, { merge:false });
+        APP.isSyncing = false;
+        setBadge("온라인 연결됨", "ok");
+      }catch(err){
+        console.error(err);
+        APP.isSyncing = false;
+        setBadge("동기화 실패(로컬 저장)", "warn");
+      }
+    }, 350);
+  }
+
+  async function connectGroup(code){
+    if(!APP.isOnlineReady) return;
+
+    // 기존 리스너 해제
+    if(APP.unsub){ try{ APP.unsub(); }catch{} APP.unsub=null; }
+
+    APP.groupCode = (code||"").trim();
+    localStorage.setItem(LS_GROUP_CODE, APP.groupCode);
+
+    if(!APP.groupCode){
+      setBadge("그룹코드 필요", "warn");
+      render();
+      return;
+    }
+
+    setBadge("온라인 연결 중", "spin");
+
+    const ref = groupRef(APP.groupCode);
+
+    // 문서가 없으면 "내 로컬 데이터"로 생성
+    try{
+      const snap = await ref.get();
+      if(!snap.exists){
+        await ref.set(APP.state, { merge:false });
+        toast("새 온라인 그룹 생성", `그룹코드: ${APP.groupCode}`);
+      }else{
+        const remote = snap.data();
+        // remote가 더 최신이면 remote 적용, 아니면 내 로컬을 업로드
+        const rAt = remote?.updatedAt || 0;
+        const lAt = APP.state?.updatedAt || 0;
+        if(rAt >= lAt){
+          applyRemote(remote);
+        }else{
+          await ref.set(APP.state, { merge:false });
+        }
+      }
+    }catch(err){
+      console.error(err);
+      setBadge("연결 실패", "warn");
+      return;
+    }
+
+    // 실시간 구독
+    APP.unsub = ref.onSnapshot((snap) => {
+      if(!snap.exists) return;
+      const remote = snap.data();
+      // 내가 방금 올린 것까지 다시 받아도 updatedAt으로 정리됨
+      applyRemote(remote);
+      setBadge("온라인 연결됨", "ok");
+    }, (err) => {
+      console.error(err);
+      setBadge("실시간 연결 끊김", "warn");
+    });
+
+    render();
+  }
+
+  // ---------- App helpers ----------
+  const getSession = (id) => APP.state.sessions.find(s => s.id===id) || null;
+  const currentSession = () => getSession(APP.selectedSessionId) || APP.state.sessions[0] || null;
+  const attendanceLabel = (v) => v==="present" ? "출석" : "결석";
+  const memberName = (id) => (APP.state.members.find(m=>m.id===id)?.name) || "알수없음";
+  const presentMemberIds = (ss) => {
+    const att = ss.attendance || {};
+    return APP.state.members
+      .filter(m => att[m.id] === "present")
+      .map(m => m.id);
+  };
+
+  // ---------- Tabs ----------
+  const TABS = [
+    { id:"sessions", label:"모임", icon:"fa-calendar-days" },
+    { id:"members", label:"명단", icon:"fa-users" },
+    { id:"attendance", label:"출결", icon:"fa-user-check" },
+    { id:"schedule", label:"대진표", icon:"fa-diagram-project" },
+    { id:"results", label:"결과입력", icon:"fa-flag-checkered" },
+    { id:"stats", label:"성적표", icon:"fa-ranking-star" },
+  ];
+  const renderTabs = () => {
+    APP.ui.tabs.innerHTML = "";
+    TABS.forEach(t => {
+      const el = document.createElement("div");
+      el.className = "pill" + (APP.tab===t.id ? " active":"");
+      el.innerHTML = `<i class="fa-solid ${t.icon}"></i><span>${t.label}</span>`;
+      el.onclick = () => { APP.tab = t.id; render(); };
+      APP.ui.tabs.appendChild(el);
+    });
+  };
+
+  // ---------- KDK Generator ----------
+  function generateKDK(ss, gamesPerPerson, courts){
+    const ids = presentMemberIds(ss);
+    const N = ids.length;
+    const G = Number(gamesPerPerson);
+    const C = Math.max(1, Number(courts||1));
+
+    if(N < 4) throw new Error("출석 인원이 4명 이상이어야 대진표를 만들 수 있어요.");
+    if((N * G) % 4 !== 0){
+      throw new Error(`현재 출석 ${N}명 × 인당 ${G}게임 = ${N*G} (4로 나누어떨어지지 않아 전원 동일 게임수가 불가능합니다).\n출석 인원을 조정하거나 게임수를 바꿔주세요.`);
+    }
+
+    const totalMatches = (N * G) / 4;
+    const games = {}; ids.forEach(id => games[id]=0);
+    const teammate = {};
+    const opponent = {};
+    const inc = (mat, a, b, v=1) => {
+      if(!mat[a]) mat[a] = {};
+      mat[a][b] = (mat[a][b]||0) + v;
+    };
+    const get = (mat, a, b) => (mat[a] && mat[a][b]) ? mat[a][b] : 0;
+
+    const pairings = ([p1,p2,p3,p4]) => ([
+      { A:[p1,p2], B:[p3,p4] },
+      { A:[p1,p3], B:[p2,p4] },
+      { A:[p1,p4], B:[p2,p3] },
+    ]);
+
+    const pairingCost = (A,B) => {
+      const [a1,a2]=A, [b1,b2]=B;
+      const W_T = 9, W_O = 3, W_F = 2;
+      let cost = 0;
+
+      cost += W_T * (get(teammate,a1,a2) + get(teammate,a2,a1));
+      cost += W_T * (get(teammate,b1,b2) + get(teammate,b2,b1));
+
+      [[a1,b1],[a1,b2],[a2,b1],[a2,b2]].forEach(([x,y]) => {
+        cost += W_O * (get(opponent,x,y) + get(opponent,y,x));
+      });
+
+      cost += W_F * (games[a1] + games[a2] + games[b1] + games[b2]);
+      cost += Math.random() * 0.05;
+      return cost;
+    };
+
+    const pickQuartet = () => {
+      const remaining = ids.filter(id => games[id] < G);
+      if(remaining.length < 4) return null;
+
+      const sorted = remaining
+        .map(id => ({id, g: games[id], r: Math.random()}))
+        .sort((x,y) => x.g - y.g || x.r - y.r)
+        .map(x=>x.id);
+
+      const pool = sorted.slice(0, Math.min(10, sorted.length));
+
+      let best = null, bestScore = Infinity;
+      for(let i=0;i<pool.length-3;i++){
+        for(let j=i+1;j<pool.length-2;j++){
+          for(let k=j+1;k<pool.length-1;k++){
+            for(let l=k+1;l<pool.length;l++){
+              const q = [pool[i],pool[j],pool[k],pool[l]];
+              if(q.some(id => games[id] >= G)) continue;
+
+              let localBest = Infinity;
+              pairings(q).forEach(p => { localBest = Math.min(localBest, pairingCost(p.A, p.B)); });
+              const fairnessBoost = q.reduce((acc,id)=>acc+games[id],0);
+              const score = localBest + fairnessBoost*0.05;
+
+              if(score < bestScore){
+                bestScore = score;
+                best = q;
+              }
+            }
+          }
+        }
+      }
+      return best || pool.slice(0,4);
+    };
+
+    const matches = [];
+    for(let m=1; m<=totalMatches; m++){
+      const q = pickQuartet();
+      if(!q) break;
+
+      let bestP = null, bestC = Infinity;
+      pairings(q).forEach(p => {
+        const c = pairingCost(p.A, p.B);
+        if(c < bestC){ bestC = c; bestP = p; }
+      });
+
+      const id = uid();
+      const court = ((m-1) % C) + 1;
+
+      matches.push({ id, no:m, court, teamA: bestP.A, teamB: bestP.B });
+
+      const A = bestP.A, B = bestP.B;
+      A.forEach(x => games[x]++);
+      B.forEach(x => games[x]++);
+
+      inc(teammate, A[0], A[1]); inc(teammate, A[1], A[0]);
+      inc(teammate, B[0], B[1]); inc(teammate, B[1], B[0]);
+
+      [[A[0],B[0]],[A[0],B[1]],[A[1],B[0]],[A[1],B[1]]].forEach(([x,y]) => {
+        inc(opponent,x,y); inc(opponent,y,x);
+      });
+    }
+
+    const bad = ids.filter(id => games[id] !== G);
+    if(bad.length){
+      const names = bad.map(id => memberName(id)).join(", ");
+      throw new Error(`대진표 생성은 됐지만 게임수 동일 조건을 만족 못 했어요. 다시 생성해 보세요.\n문제 대상: ${names}`);
+    }
+
+    return { gamesPerPerson: G, courts: C, matches, generatedAt: new Date().toISOString() };
+  }
+
+  // ---------- Stats ----------
+  function computeStats(){
+    const members = APP.state.members;
+    const base = {};
+    members.forEach(m => {
+      base[m.id] = {
+        id: m.id, name: m.name,
+        sessions: 0, present: 0, absent: 0,
+        games: 0, wins: 0, losses: 0, winRate: 0
+      };
+    });
+
+    APP.state.sessions.forEach(ss => {
+      const att = ss.attendance || {};
+      members.forEach(m => {
+        base[m.id].sessions++;
+        const v = att[m.id] || "absent";
+        if(v==="present") base[m.id].present++;
+        else base[m.id].absent++;
+      });
+
+      const matches = ss.kdk?.matches || [];
+      matches.forEach(mt => {
+        const res = ss.results?.byMatch?.[mt.id] || {};
+        const players = [...mt.teamA, ...mt.teamB];
+        players.forEach(pid => base[pid].games++);
+
+        if(res.winner==="A"){
+          mt.teamA.forEach(pid => base[pid].wins++);
+          mt.teamB.forEach(pid => base[pid].losses++);
+        }else if(res.winner==="B"){
+          mt.teamB.forEach(pid => base[pid].wins++);
+          mt.teamA.forEach(pid => base[pid].losses++);
+        }
+      });
+    });
+
+    const arr = Object.values(base);
+    arr.forEach(x => x.winRate = x.games ? (x.wins / x.games) : 0);
+    return arr;
+  }
+
+  // ---------- LEFT: Online connect ----------
+  function renderLeftOnline(){
+    APP.ui.leftTitle.textContent = "온라인";
+    const box = document.createElement("div");
+    box.className = "col";
+
+    const cfg = document.createElement("div");
+    cfg.className = "mutedBox";
+    cfg.innerHTML = `
+      <div style="font-weight:900; margin-bottom:6px">온라인 그룹 연결</div>
+      <div class="small" style="margin-bottom:10px">같은 <b>그룹코드</b>를 입력하면 모두 동일 데이터로 실시간 공유됩니다.</div>
+
+      <div class="row" style="align-items:flex-end">
+        <div class="field" style="min-width:220px; flex:1">
+          <label>그룹코드 (예: PIG71)</label>
+          <input id="groupCode" value="${escapeHtml(APP.groupCode||"")}" placeholder="영문/숫자 4~12 추천" />
+        </div>
+        <button class="btn primary" id="btnConnect"><i class="fa-solid fa-plug"></i> 연결</button>
+        <button class="btn warn" id="btnDisconnect"><i class="fa-solid fa-link-slash"></i> 연결해제</button>
+      </div>
+
+      <div class="sep"></div>
+      <div class="hint">
+        <b>중요:</b> 그룹코드는 카톡방에 공유하면 됩니다.<br/>
+        Firebase 설정이 안 되어 있으면 “Firebase 설정 필요”가 뜹니다.
+      </div>
+    `;
+
+    const quick = document.createElement("div");
+    quick.className = "mutedBox";
+    quick.innerHTML = `
+      <div style="font-weight:900; margin-bottom:6px">지금 상태</div>
+      <div class="small">
+        · 로그인: <span class="mono">${escapeHtml(APP.fb.auth?.currentUser?.uid ? "익명(" + APP.fb.auth.currentUser.uid.slice(0,8) + "…)" : "미연결")}</span><br/>
+        · 그룹: <span class="mono">${escapeHtml(APP.groupCode||"-")}</span><br/>
+        · 마지막 업데이트: <span class="mono">${APP.state?.updatedAt ? new Date(APP.state.updatedAt).toLocaleString() : "-"}</span>
+      </div>
+      <div class="sep"></div>
+      <div class="row">
+        <button class="btn good" id="btnForcePush"><i class="fa-solid fa-cloud-arrow-up"></i> 내 데이터 업로드</button>
+        <button class="btn danger" id="btnResetLocal"><i class="fa-solid fa-trash-can"></i> 로컬 초기화</button>
+      </div>
+      <div class="small" style="margin-top:8px">※ “내 데이터 업로드”는 현재 화면의 데이터를 온라인에 덮어씁니다.</div>
+    `;
+
+    box.appendChild(cfg);
+    box.appendChild(quick);
+
+    APP.ui.leftBody.innerHTML = "";
+    APP.ui.leftBody.appendChild(box);
+
+    document.getElementById("btnConnect").onclick = () => {
+      const code = document.getElementById("groupCode").value.trim();
+      if(!code) return toast("그룹코드를 입력해 주세요");
+      connectGroup(code);
+    };
+    document.getElementById("btnDisconnect").onclick = () => {
+      if(APP.unsub){ try{ APP.unsub(); }catch{} APP.unsub=null; }
+      APP.groupCode = "";
+      localStorage.setItem(LS_GROUP_CODE, "");
+      setBadge("그룹코드 필요", "warn");
+      toast("온라인 연결 해제", "로컬로 계속 사용 가능합니다.");
+      render();
+    };
+    document.getElementById("btnForcePush").onclick = async () => {
+      if(!APP.isOnlineReady || !APP.groupCode) return toast("온라인 연결 후 사용하세요");
+      try{
+        setBadge("업로드 중", "spin");
+        APP.state.updatedAt = Date.now();
+        APP.state.updatedBy = APP.fb.auth.currentUser?.uid || "anon";
+        await groupRef(APP.groupCode).set(APP.state, { merge:false });
+        setBadge("온라인 연결됨", "ok");
+        toast("업로드 완료", "온라인 데이터가 갱신되었습니다.");
+      }catch(err){
+        console.error(err);
+        setBadge("업로드 실패", "warn");
+      }
+    };
+    document.getElementById("btnResetLocal").onclick = () => {
+      if(!confirm("로컬 데이터를 초기화할까요?\n(온라인 데이터는 그대로 유지됩니다)")) return;
+      localStorage.removeItem(LS_LOCAL_CACHE);
+      ensureState();
+      toast("로컬 초기화 완료");
+      render();
+    };
+  }
+
+  // ---------- App UI ----------
+  const renderTabsAndPanels = () => {
+    renderTabs();
+    // 왼쪽: 온라인 패널 고정
+    renderLeftOnline();
+    // 오른쪽: 탭별 화면
+    if(APP.tab==="sessions") renderRightSessions();
+    else if(APP.tab==="members") renderRightMembers();
+    else if(APP.tab==="attendance") renderRightAttendance();
+    else if(APP.tab==="schedule") renderRightSchedule();
+    else if(APP.tab==="results") renderRightResults();
+    else if(APP.tab==="stats") renderRightStats();
+    else renderRightSessions();
+  };
+
+  // ---------- Right actions ----------
+  function renderRightHeaderActions(ss){
+    APP.ui.rightActions.innerHTML = "";
+    const btnPrint = document.createElement("button");
+    btnPrint.className = "btn ghost";
+    btnPrint.innerHTML = `<i class="fa-solid fa-print"></i> 인쇄`;
+    btnPrint.onclick = () => window.print();
+    APP.ui.rightActions.appendChild(btnPrint);
+
+    if(ss){
+      const btnDeleteSession = document.createElement("button");
+      btnDeleteSession.className = "btn danger";
+      btnDeleteSession.innerHTML = `<i class="fa-solid fa-trash-can"></i> 모임 삭제`;
+      btnDeleteSession.onclick = () => {
+        if(!confirm(`"${ss.title}" 모임을 삭제할까요? (온라인에도 반영됨)`)) return;
+        APP.state.sessions = APP.state.sessions.filter(x => x.id !== ss.id);
+        APP.selectedSessionId = APP.state.sessions?.[0]?.id || null;
+        schedulePush("모임삭제");
+        toast("모임 삭제 완료");
+        render();
+      };
+      APP.ui.rightActions.appendChild(btnDeleteSession);
+    }
+  }
+
+  // ---------- Right: Sessions ----------
+  function renderRightSessions(){
+    const ss = currentSession();
+    APP.ui.rightTitle.textContent = "대시보드";
+    renderRightHeaderActions(ss);
+
+    if(!ss){
+      APP.ui.rightBody.innerHTML = `<div class="hint">모임을 추가해 주세요.</div>`;
+      return;
+    }
+
+    const pres = presentMemberIds(ss).length;
+    const total = APP.state.members.length;
+    const matches = ss.kdk?.matches?.length || 0;
+    const gpp = ss.kdk?.gamesPerPerson || 3;
+
+    APP.ui.rightBody.innerHTML = `
+      <div class="kdkGrid">
+        <div class="mutedBox">
+          <div style="font-weight:900; font-size:16px">${escapeHtml(ss.title || "모임")}</div>
+          <div class="small" style="margin-top:4px">
+            <i class="fa-regular fa-calendar"></i> ${kDate(ss.date)}
+            &nbsp;·&nbsp; <i class="fa-solid fa-user-check"></i> 출석 ${pres}/${total}
+            &nbsp;·&nbsp; <i class="fa-solid fa-diagram-project"></i> 대진 ${matches}경기
+          </div>
+          <div class="sep"></div>
+          <div class="row">
+            <div class="field" style="min-width:210px">
+              <label>모임 날짜 (정기모임 기본: 매월 마지막 금요일)</label>
+              <input id="ssDate" type="date" value="${escapeHtml(ss.date||todayISO())}" />
+            </div>
+            <div class="field" style="min-width:210px">
+              <label>모임 제목</label>
+              <input id="ssTitle" value="${escapeHtml(ss.title||"")}" />
+            </div>
+          </div>
+          <div class="field" style="margin-top:10px">
+            <label>메모</label>
+            <textarea id="ssNote" placeholder="예: 코트 2면, 3시간, 회비 1만원">${escapeHtml(ss.note||"")}</textarea>
+          </div>
+          <div class="row" style="margin-top:10px; justify-content:space-between">
+            <button class="btn primary" id="btnNewSession"><i class="fa-solid fa-plus"></i> 새 모임 추가</button>
+            <button class="btn good" id="saveSession"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+          </div>
+        </div>
+
+        <div class="mutedBox">
+          <div style="font-weight:900; font-size:16px">모임 목록</div>
+          <div class="small" style="margin-top:4px">클릭해서 모임 선택</div>
+          <div class="sep"></div>
+          <div class="list" id="sessionList"></div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("saveSession").onclick = () => {
+      ss.date = document.getElementById("ssDate").value || todayISO();
+      ss.title = document.getElementById("ssTitle").value.trim() || "정기모임";
+      ss.note = document.getElementById("ssNote").value || "";
+      schedulePush("모임저장");
+      toast("저장 완료", "온라인에도 반영됩니다.");
+      render();
+    };
+
+    document.getElementById("btnNewSession").onclick = () => {
+      const id = uid();
+      APP.state.sessions.unshift({
+        id,
+        date: nextMonthlyLastFridayISO(),
+        title: "정기모임",
+        note: "",
+        attendance: {},
+        kdk: { gamesPerPerson: 3, courts: 1, matches: [], generatedAt: null },
+        results: { byMatch: {} }
+      });
+      APP.selectedSessionId = id;
+      schedulePush("새모임");
+      toast("새 모임 추가", "출결부터 체크하세요.");
+      render();
+    };
+
+    // 목록 렌더
+    const list = document.getElementById("sessionList");
+    list.innerHTML = "";
+    APP.state.sessions
+      .slice()
+      .sort((a,b)=> (b.date||"").localeCompare(a.date||""))
+      .forEach(sx => {
+        const isSel = sx.id===APP.selectedSessionId;
+        const pres2 = presentMemberIds(sx).length;
+        const matches2 = sx.kdk?.matches?.length || 0;
+        const it = document.createElement("div");
+        it.className = "item";
+        it.style.borderColor = isSel ? "rgba(124,92,255,.55)" : "";
+        it.style.background = isSel ? "rgba(124,92,255,.12)" : "";
+        it.innerHTML = `
+          <div class="left">
+            <div class="name">${escapeHtml(sx.title||"모임")}</div>
+            <div class="small">${kDate(sx.date)} · 출석 ${pres2}/${APP.state.members.length} · 대진 ${matches2}경기</div>
+          </div>
+          <button class="btn ghost"><i class="fa-solid fa-arrow-right"></i></button>
+        `;
+        it.onclick = () => {
+          APP.selectedSessionId = sx.id;
+          toast("모임 선택", sx.title||"");
+          render();
+        };
+        list.appendChild(it);
+      });
+  }
+
+  // ---------- Right: Members ----------
+  function renderRightMembers(){
+    const ss = currentSession();
+    APP.ui.rightTitle.textContent = "명단(가나다순)";
+    renderRightHeaderActions(ss);
+
+    APP.ui.rightBody.innerHTML = `
+      <div class="mutedBox">
+        <div class="row" style="align-items:flex-end; justify-content:space-between">
+          <div>
+            <div style="font-weight:900">멤버 관리</div>
+            <div class="small" style="margin-top:4px">추가/삭제는 온라인에 즉시 공유됩니다.</div>
+          </div>
+          <div class="row">
+            <div class="field" style="min-width:240px">
+              <label>새 멤버 추가</label>
+              <input id="newMember" placeholder="예: 홍길동" />
+            </div>
+            <button class="btn primary" id="btnAddMember"><i class="fa-solid fa-user-plus"></i> 추가</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th style="width:70px">No</th><th>이름</th><th style="width:140px">관리</th></tr></thead>
+            <tbody id="memberTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const tbody = document.getElementById("memberTbody");
+    tbody.innerHTML = "";
+    APP.state.members.slice().sort(byNameKo).forEach((m,i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><b>${i+1}</b></td>
+        <td>${escapeHtml(m.name)}</td>
+        <td><button class="btn danger" data-del="${m.id}"><i class="fa-solid fa-user-xmark"></i> 삭제</button></td>
+      `;
+      tr.querySelector("[data-del]").onclick = () => {
+        if(!confirm(`"${m.name}" 멤버를 삭제할까요?\n(기존 모임 출결/기록에서도 제거됩니다)`)) return;
+
+        APP.state.members = APP.state.members.filter(x => x.id !== m.id);
+        APP.state.sessions.forEach(ss => {
+          if(ss.attendance) delete ss.attendance[m.id];
+          if(ss.kdk?.matches?.length){
+            ss.kdk.matches = ss.kdk.matches.filter(mt =>
+              !mt.teamA.includes(m.id) && !mt.teamB.includes(m.id)
+            );
+          }
+          if(ss.results?.byMatch){
+            const keep = {};
+            (ss.kdk?.matches || []).forEach(mt => { keep[mt.id] = ss.results.byMatch[mt.id] || {} });
+            ss.results.byMatch = keep;
+          }
+        });
+
+        schedulePush("멤버삭제");
+        toast("멤버 삭제 완료");
+        render();
+      };
+      tbody.appendChild(tr);
+    });
+
+    const addMember = () => {
+      const v = document.getElementById("newMember").value.trim();
+      if(!v) return toast("이름을 입력해 주세요");
+      if(APP.state.members.some(m => m.name === v)) return toast("이미 있는 이름입니다");
+      APP.state.members.push({ id: uid(), name: v });
+      APP.state.members.sort(byNameKo);
+      document.getElementById("newMember").value = "";
+      schedulePush("멤버추가");
+      toast("멤버 추가 완료", v);
+      render();
+    };
+    document.getElementById("btnAddMember").onclick = addMember;
+    document.getElementById("newMember").onkeydown = (e) => { if(e.key==="Enter") addMember(); };
+  }
+
+  // ---------- Right: Attendance (출석/결석만) ----------
+  function renderRightAttendance(){
+    const ss = currentSession();
+    APP.ui.rightTitle.textContent = "출결(출석/결석)";
+    renderRightHeaderActions(ss);
+    if(!ss){
+      APP.ui.rightBody.innerHTML = `<div class="hint">모임을 선택해 주세요.</div>`;
+      return;
+    }
+
+    const members = APP.state.members.slice().sort(byNameKo);
+    const pres = presentMemberIds(ss).length;
+
+    APP.ui.rightBody.innerHTML = `
+      <div class="mutedBox">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="font-weight:900">${escapeHtml(ss.title)} <span class="badge"><i class="fa-regular fa-calendar"></i> ${kDate(ss.date)}</span></div>
+            <div class="small" style="margin-top:4px">출석 인원: <b>${pres}/${members.length}</b></div>
+          </div>
+          <div class="row">
+            <button class="btn good" id="allPresent"><i class="fa-solid fa-check"></i> 전원 출석</button>
+            <button class="btn danger" id="allAbsent"><i class="fa-solid fa-ban"></i> 전원 결석</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>이름</th><th style="width:240px">체크</th><th style="width:140px">상태</th></tr></thead>
+            <tbody id="attBody"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const tbody = document.getElementById("attBody");
+    tbody.innerHTML = "";
+    members.forEach(m => {
+      const v = ss.attendance[m.id] || "absent";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHtml(m.name)}</td>
+        <td>
+          <div class="row" style="gap:8px">
+            <button class="btn ${v==="present"?"primary":""}" data-set="present" data-id="${m.id}">
+              <i class="fa-solid fa-user-check"></i> 출석
+            </button>
+            <button class="btn ${v==="absent"?"danger":""}" data-set="absent" data-id="${m.id}">
+              <i class="fa-solid fa-user-xmark"></i> 결석
+            </button>
+          </div>
+        </td>
+        <td>${v==="present"
+          ? `<span class="tag good"><i class="fa-solid fa-user-check"></i> 출석</span>`
+          : `<span class="tag danger"><i class="fa-solid fa-user-xmark"></i> 결석</span>`
+        }</td>
+      `;
+      tr.querySelectorAll("[data-set]").forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-id");
+          const set = btn.getAttribute("data-set");
+          ss.attendance[id] = set;
+          schedulePush("출결");
+          renderRightAttendance();
+        };
+      });
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("allPresent").onclick = () => {
+      APP.state.members.forEach(m => ss.attendance[m.id] = "present");
+      schedulePush("전원출석");
+      toast("전원 출석 처리");
+      render();
+    };
+    document.getElementById("allAbsent").onclick = () => {
+      APP.state.members.forEach(m => ss.attendance[m.id] = "absent");
+      ss.kdk.matches = [];
+      ss.kdk.generatedAt = null;
+      ss.results.byMatch = {};
+      schedulePush("전원결석");
+      toast("전원 결석 처리");
+      render();
+    };
+  }
+
+  // ---------- Right: Schedule (KDK) ----------
+  function renderRightSchedule(){
+    const ss = currentSession();
+    APP.ui.rightTitle.textContent = "KDK 대진표";
+    renderRightHeaderActions(ss);
+    if(!ss){
+      APP.ui.rightBody.innerHTML = `<div class="hint">모임을 선택해 주세요.</div>`;
+      return;
+    }
+
+    const presIds = presentMemberIds(ss);
+    const presNames = presIds.map(memberName);
+    const matches = ss.kdk?.matches || [];
+    const gpp = ss.kdk?.gamesPerPerson || 3;
+    const courts = ss.kdk?.courts || 1;
+
+    APP.ui.rightBody.innerHTML = `
+      <div class="mutedBox">
+        <div class="row" style="justify-content:space-between; align-items:flex-end">
+          <div>
+            <div style="font-weight:900">${escapeHtml(ss.title)} <span class="badge"><i class="fa-regular fa-calendar"></i> ${kDate(ss.date)}</span></div>
+            <div class="small" style="margin-top:4px">출석 인원만 대상으로 복식 대진표를 생성합니다.</div>
+          </div>
+          <div class="row">
+            <button class="btn warn" id="btnClear"><i class="fa-solid fa-eraser"></i> 대진표 지우기</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="row">
+          <div class="field">
+            <label>인당 게임수</label>
+            <select id="gpp">
+              <option value="3" ${gpp==3?"selected":""}>3게임</option>
+              <option value="4" ${gpp==4?"selected":""}>4게임</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>코트 수(표시용)</label>
+            <select id="courts">
+              ${[1,2,3,4].map(n=>`<option value="${n}" ${courts==n?"selected":""}>${n}면</option>`).join("")}
+            </select>
+          </div>
+          <div class="field" style="min-width:280px">
+            <label>현재 출석 인원</label>
+            <input value="${presIds.length}명: ${escapeHtml(presNames.join(", "))}" readonly />
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px; justify-content:flex-end">
+          <button class="btn good" id="btnGen"><i class="fa-solid fa-wand-magic-sparkles"></i> 대진표 생성</button>
+        </div>
+        <div class="small" style="margin-top:10px; color:rgba(234,240,255,.86)">
+          조건: <span class="mono">출석 N명 × 인당 G게임</span>이 <span class="mono">4</span>로 나누어떨어지면 전원 동일 게임수로 생성됩니다.
+        </div>
+      </div>
+
+      <div class="mutedBox" style="margin-top:12px">
+        <div class="row" style="justify-content:space-between">
+          <div style="font-weight:900">대진표</div>
+          <div class="small">${matches.length ? `생성: ${new Date(ss.kdk.generatedAt).toLocaleString()}` : "아직 생성되지 않았어요"}</div>
+        </div>
+        <div class="sep"></div>
+        ${matches.length ? `
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:64px">No</th>
+                  <th style="width:70px">코트</th>
+                  <th>팀 A</th>
+                  <th>팀 B</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${matches.map(mt => `
+                  <tr>
+                    <td><b>${mt.no}</b></td>
+                    <td>${mt.court}면</td>
+                    <td>${escapeHtml(memberName(mt.teamA[0]))} · ${escapeHtml(memberName(mt.teamA[1]))}</td>
+                    <td>${escapeHtml(memberName(mt.teamB[0]))} · ${escapeHtml(memberName(mt.teamB[1]))}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        ` : `<div class="hint">출결을 체크한 뒤 “대진표 생성”을 눌러주세요.</div>`}
+      </div>
+    `;
+
+    document.getElementById("btnClear").onclick = () => {
+      if(!confirm("이 모임의 대진표/결과를 지울까요? (온라인 반영)")) return;
+      ss.kdk.matches = [];
+      ss.kdk.generatedAt = null;
+      ss.results.byMatch = {};
+      schedulePush("대진표삭제");
+      toast("대진표 삭제 완료");
+      render();
+    };
+
+    document.getElementById("btnGen").onclick = () => {
+      try{
+        const g = Number(document.getElementById("gpp").value);
+        const c = Number(document.getElementById("courts").value);
+        const out = generateKDK(ss, g, c);
+
+        ss.kdk.gamesPerPerson = out.gamesPerPerson;
+        ss.kdk.courts = out.courts;
+        ss.kdk.matches = out.matches;
+        ss.kdk.generatedAt = out.generatedAt;
+
+        const byMatch = {};
+        out.matches.forEach(mt => {
+          byMatch[mt.id] = ss.results.byMatch?.[mt.id] || { winner:null, scoreA:"", scoreB:"" };
+        });
+        ss.results.byMatch = byMatch;
+
+        schedulePush("대진표생성");
+        toast("대진표 생성 완료", `총 ${out.matches.length}경기 · 인당 ${out.gamesPerPerson}게임`);
+        render();
+      }catch(err){
+        alert(err.message);
+      }
+    };
+  }
+
+  // ---------- Right: Results (A/B만, 점수 가로) ----------
+  function renderRightResults(){
+    const ss = currentSession();
+    APP.ui.rightTitle.textContent = "결과 입력";
+    renderRightHeaderActions(ss);
+    if(!ss){
+      APP.ui.rightBody.innerHTML = `<div class="hint">모임을 선택해 주세요.</div>`;
+      return;
+    }
+
+    const matches = ss.kdk?.matches || [];
+    if(!matches.length){
+      APP.ui.rightBody.innerHTML = `<div class="hint">대진표가 없습니다. 먼저 “대진표” 탭에서 생성해 주세요.</div>`;
+      return;
+    }
+
+    APP.ui.rightBody.innerHTML = `
+      <div class="mutedBox">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="font-weight:900">${escapeHtml(ss.title)} <span class="badge"><i class="fa-regular fa-calendar"></i> ${kDate(ss.date)}</span></div>
+            <div class="small" style="margin-top:4px">승패(A/B)만 입력해도 승률이 계산됩니다. (점수는 선택)</div>
+          </div>
+          <div class="row">
+            <button class="btn warn" id="btnClearResults"><i class="fa-solid fa-rotate-left"></i> 결과 초기화</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px">No</th>
+                <th style="width:70px">코트</th>
+                <th>팀 A</th>
+                <th>팀 B</th>
+                <th style="width:160px">승리팀</th>
+                <th style="width:200px">점수(선택)</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const tbody = document.getElementById("resultsBody");
+    tbody.innerHTML = "";
+
+    matches.forEach(mt => {
+      const res = ss.results.byMatch[mt.id] || { winner:null, scoreA:"", scoreB:"" };
+      const teamA = `${memberName(mt.teamA[0])} · ${memberName(mt.teamA[1])}`;
+      const teamB = `${memberName(mt.teamB[0])} · ${memberName(mt.teamB[1])}`;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><b>${mt.no}</b></td>
+        <td>${mt.court}면</td>
+        <td>${escapeHtml(teamA)}</td>
+        <td>${escapeHtml(teamB)}</td>
+        <td>
+          <div class="row" style="gap:8px">
+            <button class="scoreBtn ${res.winner==="A"?"onA":""}" data-win="A">A 승</button>
+            <button class="scoreBtn ${res.winner==="B"?"onB":""}" data-win="B">B 승</button>
+          </div>
+        </td>
+        <td>
+          <div class="row scoreRow" style="gap:8px">
+            <input placeholder="A" value="${escapeHtml(res.scoreA||"")}" data-score="A" />
+            <span class="small">:</span>
+            <input placeholder="B" value="${escapeHtml(res.scoreB||"")}" data-score="B" />
+          </div>
+        </td>
+      `;
+
+      tr.querySelectorAll("[data-win]").forEach(b => {
+        b.onclick = () => {
+          const w = b.getAttribute("data-win");
+          ss.results.byMatch[mt.id] = ss.results.byMatch[mt.id] || { winner:null, scoreA:"", scoreB:"" };
+          ss.results.byMatch[mt.id].winner = (ss.results.byMatch[mt.id].winner === w) ? null : w;
+          schedulePush("결과승패");
+          renderRightResults();
+        };
+      });
+
+      tr.querySelectorAll("[data-score]").forEach(inp => {
+        inp.onchange = () => {
+          const which = inp.getAttribute("data-score");
+          ss.results.byMatch[mt.id] = ss.results.byMatch[mt.id] || { winner:null, scoreA:"", scoreB:"" };
+          if(which==="A") ss.results.byMatch[mt.id].scoreA = inp.value.trim();
+          else ss.results.byMatch[mt.id].scoreB = inp.value.trim();
+          schedulePush("결과점수");
+        };
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("btnClearResults").onclick = () => {
+      if(!confirm("이 모임의 경기 결과를 초기화할까요? (온라인 반영)")) return;
+      ss.results.byMatch = {};
+      (ss.kdk.matches||[]).forEach(mt => ss.results.byMatch[mt.id] = { winner:null, scoreA:"", scoreB:"" });
+      schedulePush("결과초기화");
+      toast("결과 초기화 완료");
+      render();
+    };
+  }
+
+  // ---------- Right: Stats ----------
+  function renderRightStats(){
+    const ss = currentSession();
+    APP.ui.rightTitle.textContent = "성적표(승률순)";
+    renderRightHeaderActions(ss);
+
+    const stats = computeStats();
+    stats.sort((a,b) =>
+      (b.winRate - a.winRate) ||
+      (b.wins - a.wins) ||
+      (b.games - a.games) ||
+      a.name.localeCompare(b.name,"ko")
+    );
+
+    const rows = stats.map((x, idx) => {
+      const wr = x.games ? (x.winRate*100) : 0;
+      const badge = wr >= 70 ? "good" : wr >= 50 ? "warn" : "danger";
+      return `
+        <tr>
+          <td><b>${idx+1}</b></td>
+          <td>${escapeHtml(x.name)}</td>
+          <td>${x.present} / ${x.sessions}</td>
+          <td>${x.games}</td>
+          <td><b>${x.wins}</b> / ${x.losses}</td>
+          <td><span class="tag ${badge}"><i class="fa-solid fa-percent"></i> ${wr.toFixed(1)}%</span></td>
+        </tr>
+      `;
+    }).join("");
+
+    APP.ui.rightBody.innerHTML = `
+      <div class="mutedBox">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="font-weight:900">전체 누적 성적표</div>
+            <div class="small" style="margin-top:4px">정렬: 승률 ↓, 승수 ↓, 경기수 ↓, 이름 ↑</div>
+          </div>
+          <div class="hint" style="max-width:520px">
+            <b>주의:</b> “결과입력”에서 A승/B승이 선택된 경기만 승률에 반영됩니다.
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px">순위</th>
+                <th>이름</th>
+                <th style="width:140px">출석</th>
+                <th style="width:110px">경기수</th>
+                <th style="width:140px">승/패</th>
+                <th style="width:140px">승률</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function render(){
+    renderTabsAndPanels();
+  }
+
+  APP.ui.btnHelp.onclick = () => {
+    alert(
+`[온라인 사용법]
+1) Firebase 설정(익명로그인 + Firestore + Rules)
+2) 왼쪽에서 “그룹코드”를 정하고 카톡방에 공유
+3) 모두 같은 그룹코드로 연결하면 실시간 동기화
+
+[주의]
+- 인터넷이 끊기면 로컬 캐시에 저장됩니다.
+- 다시 연결되면 최신(updatedAt) 데이터가 기준으로 반영됩니다.
+- “내 데이터 업로드”는 온라인 데이터를 덮어씁니다.`
+    );
+  };
+
+  // ---------- boot ----------
+  ensureState();
+  render();
+  initFirebase();
+})();
+</script>
+</body>
+</html>
