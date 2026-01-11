@@ -11,6 +11,24 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAaeZRH8_AfOd3Ms-x9XI2pCIeGEI2-5k",
+    authDomain: "namyang-e8c5c.firebaseapp.com",
+    databaseURL: "https://namyang-e8c5c-default-rtdb.firebaseio.com",
+    projectId: "namyang-e8c5c",
+    storageBucket: "namyang-e8c5c.firebasestorage.app",
+    messagingSenderId: "153652308282",
+    appId: "1:153652308282:web:1c86b133deed471af08803",
+    measurementId: "G-4ECEH932D9"
+  };
+
+  // Firebase 초기화
+  firebase.initializeApp(firebaseConfig);
+
+  // Firestore 연결
+  const db = firebase.firestore();
+</script>
 
   <style>
     :root{
@@ -1471,4 +1489,5 @@
 </script>
 </body>
 </html>
+
 
