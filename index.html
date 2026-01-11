@@ -450,7 +450,9 @@ const FIREBASE_CONFIG = {
         setBadge("Firebase 설정 필요", "warn");
         return;
       }
-      APP.fb.app = firebase.initializeApp(FIREBASE_CONFIG);
+     APP.fb.app = (firebase.apps && firebase.apps.length)
+  ? firebase.app()
+  : firebase.initializeApp(FIREBASE_CONFIG);
       APP.fb.auth = firebase.auth();
       APP.fb.db = firebase.firestore();
       await APP.fb.auth.signInAnonymously();
@@ -1481,6 +1483,7 @@ const FIREBASE_CONFIG = {
 </script>
 </body>
 </html>
+
 
 
 
