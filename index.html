@@ -24,13 +24,30 @@
     measurementId: "G-4ECEH932D9"
   };
 
-  // Firebase 초기화
-  firebase.initializeApp(firebaseConfig);
+ try {
+  // ✅ 중복 초기화 방지
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-  // Firestore 연결
-  const db = firebase.firestore();
-  
-  window.__FIREBASE_READY__ = true;
+  // ✅ 전역으로 노출
+  window.__NY_TENNIS_AUTH__ = firebase.auth();
+  window.__NY_TENNIS_DB__   = firebase.firestore();
+
+  // ✅ 익명 로그인 (Firestore 규칙 통과용)
+  window.__NY_TENNIS_AUTH__.signInAnonymously()
+    .then(() => {
+      window.__FIREBASE_READY__ = true;
+      console.log("✅ Firebase ready (anonymous signed in)");
+    })
+    .catch((e) => {
+      window.__FIREBASE_READY__ = false;
+      console.error("❌ Anonymous sign-in failed:", e);
+    });
+
+} catch (e) {
+  window.__FIREBASE_READY__ = false;
+  console.error("❌ Firebase init error:", e);
+}
+
 </script>
 
   <style>
@@ -1469,6 +1486,7 @@
 </script>
 </body>
 </html>
+
 
 
 
