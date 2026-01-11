@@ -30,7 +30,7 @@
 
   // ✅ 전역으로 노출
   window.__NY_TENNIS_AUTH__ = firebase.auth();
-  window.__NY_TENNIS_DB__   = firebase.firestore();
+ window.__NY_TENNIS_DB__ = firebase.database();
 
   // ✅ 익명 로그인 (Firestore 규칙 통과용)
   window.__NY_TENNIS_AUTH__.signInAnonymously()
@@ -1486,6 +1486,7 @@
 </script>
 </body>
 </html>
+
 
 
 
